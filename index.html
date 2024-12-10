@@ -10,14 +10,26 @@
 
   <!-- Navbar -->
   <nav class="bg-gray-900 p-4 flex flex-col sm:flex-row justify-between items-center shadow-md">
-    <div class="flex items-center">
+    <div class="flex items-center justify-between w-full sm:w-auto">
+      <!-- Logo -->
       <span class="text-white font-bold text-lg">Para LP</span>
+
+      <!-- Hamburger Menu Button (visible on mobile) -->
+      <button id="menu-btn" class="text-white sm:hidden focus:outline-none">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
     </div>
-    <div class="text-center text-white font-semibold text-lg">
+
+    <!-- Centered Text (hidden on mobile) -->
+    <div class="hidden sm:block text-center text-white font-semibold text-lg">
       Java Exercise
     </div>
-    <div class="text-white mt-2 sm:mt-0">
-      <button class="bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white font-bold py-2 px-4 rounded-full">
+
+    <!-- Links (hidden on mobile, shown on larger screens) -->
+    <div id="menu" class="hidden sm:flex flex-col sm:flex-row sm:items-center sm:gap-4 mt-4 sm:mt-0">
+      <button class="bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white font-bold py-2 px-4 rounded-full mt-2 sm:mt-0">
         Login
       </button>
     </div>
@@ -55,6 +67,14 @@
   </div>
 
   <script>
+    // Toggle the menu on mobile
+    const menuBtn = document.getElementById("menu-btn");
+    const menu = document.getElementById("menu");
+
+    menuBtn.addEventListener("click", () => {
+      menu.classList.toggle("hidden");
+    });
+
     const questions = [
       {
         question: "A file containing a class called MyClass should be saved as:",
