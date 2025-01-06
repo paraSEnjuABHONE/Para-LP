@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Course Test Page</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Course Card Styles */
+    .course-card {
+      display: flex;
+      align-items: center;
+      background: #1e293b; /* Dark blue */
+      border-radius: 1rem;
+      padding: 1rem;
+      transition: transform 0.3s, background 0.3s;
+      color: #ffffff;
+      cursor: pointer;
+    }
+
+    .course-card img {
+      width: 80px;
+      height: 80px;
+      border-radius: 0.5rem;
+      object-fit: cover;
+      margin-right: 1rem;
+    }
+
+    .course-card:hover {
+      transform: scale(1.02);
+      background: #334155; /* Slightly lighter blue */
+    }
+
+    /* Featured Course Styles */
+    .featured-course {
+      border-radius: 1rem;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .featured-course img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .featured-course-content {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 1.5rem;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+      color: #fff;
+    }
+
+    .featured-course-title {
+      font-size: 1.75rem;
+      font-weight: bold;
+    }
+
+    .featured-course-desc {
+      margin-top: 0.5rem;
+      font-size: 1rem;
+    }
+
+    /* Sticky Navbar */
+    .sticky-navbar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background-color: #1f2937; /* Dark gray */
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+      transition: background-color 0.3s ease;
+    }
+
+    .sticky-navbar:hover {
+      background-color: #374151; /* Slightly lighter gray */
+    }
+
+    .nav-link {
+      color: #e5e7eb;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      transition: color 0.3s ease;
+    }
+
+    .nav-link:hover {
+      color: #ffffff;
+    }
+
+    .nav-active {
+      color: #ec4899; /* Highlight active link with pink */
+      font-weight: bold;
+    }
+
+    .toggle-btn {
+      display: none;
+    }
+
+    /* Responsive Navbar for Mobile */
+    @media (max-width: 768px) {
+      .toggle-btn {
+        display: block;
+        color: #e5e7eb;
+        cursor: pointer;
+        font-size: 1.5rem;
+      }
+
+      .nav-menu {
+        display: none;
+        flex-direction: column;
+        background-color: #1f2937;
+        padding: 1rem;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .nav-menu.open {
+        display: flex;
+      }
+
+      .nav-link {
+        padding: 1rem 0;
+        text-align: center;
+      }
+    }
+
+    /* Colors for Cards */
+    .course-card:hover .course-title {
+      color: #ec4899; /* Pink color */
+    }
+
+    .course-desc {
+      color: #cbd5e1; /* Light gray text */
+    }
+  </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="sticky-navbar">
+    <div class="container mx-auto flex justify-between items-center p-4">
+      <h1 class="text-xl font-bold text-pink-500">CourseHub</h1>
+      <nav>
+        <button class="toggle-btn lg:hidden" onclick="toggleMenu()">☰</button>
+        <ul class="nav-menu lg:flex lg:space-x-4 lg:static">
+          <li><a href="#" class="nav-link">Home</a></li>
+          <li><a href="#" class="nav-link">Courses</a></li>
+          <li><a href="#" class="nav-link">About</a></li>
+          <li><a href="#" class="nav-link">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-grow container mx-auto p-8">
+    <h2 class="text-3xl font-bold text-center text-gray-200 mb-8">Course Tests</h2>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Featured Course -->
+      <div class="lg:col-span-2 space-y-6">
+        <div class="featured-course">
+          <img src="gif/feature_course.gif" alt="Featured Course Image">
+          <div class="featured-course-content">
+            <h2 class="featured-course-title">Featured Course</h2>
+            <p class="featured-course-desc">Explore our latest and most popular course.</p>
+          </div>
+        </div>
+
+        <!-- Two Courses Under the Featured Image -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- HTML Basics -->
+          <div class="course-card" onclick="location.href='html.html'">
+            <img src="logo/html.png" alt="HTML Basics">
+            <div>
+              <h3 class="course-title font-bold text-lg">HTML Basics</h3>
+              <p class="course-desc text-sm mt-1">Learn the foundational skills of HTML, the building block of the web.</p>
+            </div>
+          </div>
+
+          <!-- CSS Basics -->
+          <div class="course-card" onclick="location.href='css.html'">
+            <img src="logo/css.png" alt="CSS Basics">
+            <div>
+              <h3 class="course-title font-bold text-lg">CSS Basics</h3>
+              <p class="course-desc text-sm mt-1">Master CSS and learn how to style web pages.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div class="flex flex-col space-y-6">
+        <!-- JavaScript Basics -->
+        <div class="course-card" onclick="location.href='js.html'">
+          <img src="logo/java_script.png" alt="JavaScript Basics">
+          <div>
+            <h3 class="course-title font-bold text-lg">JavaScript Basics</h3>
+            <p class="course-desc text-sm mt-1">Get started with JavaScript and add interactivity to your websites.</p>
+          </div>
+        </div>
+
+        <!-- Java Basics -->
+        <div class="course-card" onclick="location.href='java.html'">
+          <img src="logo/java.png" alt="Java Basics">
+          <div>
+            <h3 class="course-title font-bold text-lg">Java Basics</h3>
+            <p class="course-desc text-sm mt-1">Learn Java programming and the fundamentals of object-oriented programming.</p>
+          </div>
+        </div>
+
+        <!-- Python Basics -->
+        <div class="course-card" onclick="location.href='index.html'">
+          <img src="logo/python.png" alt="Python Basics">
+          <div>
+            <h3 class="course-title font-bold text-lg">Python Basics</h3>
+            <p class="course-desc text-sm mt-1">Explore Python programming for data structures and scripting.</p>
+          </div>
+        </div>
+
+        <!-- PHP Basics -->
+        <div class="course-card" onclick="location.href='index.html'">
+          <img src="logo/php.png" alt="PHP Basics">
+          <div>
+            <h3 class="course-title font-bold text-lg">PHP Basics</h3>
+            <p class="course-desc text-sm mt-1">Dive into PHP for server-side scripting and database integration.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-gray-800 p-4">
+    <div class="container mx-auto text-center">
+      <p class="text-gray-400 text-sm">&copy; 2025 CourseHub. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    function toggleMenu() {
+      const menu = document.querySelector('.nav-menu');
+      menu.classList.toggle('open');
+    }
+  </script>
+</body>
+</html>

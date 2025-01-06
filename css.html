@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enhanced Quiz</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Progress Bar Styling */
+    .progress-bar-container {
+      background-color: #f3f4f6;
+      border-radius: 1rem;
+      height: 0.25rem;
+      width: 100%;
+      position: relative;
+    }
+
+    .progress-bar {
+      background-color: #ec4899;
+      height: 100%;
+      border-radius: 1rem;
+      transition: width 0.3s ease-in-out;
+    }
+
+    .progress-bar-text {
+      font-size: 0.875rem;
+      font-weight: bold;
+      color: #ec4899;
+      position: absolute;
+      top: -1.5rem;
+      left: 0;
+    }
+
+    /* Circular Progress Bar Styling */
+    .circle-progress-container {
+      position: relative;
+      width: 150px;
+      height: 150px;
+      margin: 0 auto;
+    }
+
+    .circle-progress-container svg {
+      transform: rotate(-90deg);
+    }
+
+    .circle-progress-background {
+      stroke: #f3f4f6;
+      stroke-width: 10;
+    }
+
+    .circle-progress-foreground {
+      stroke: #ec4899;
+      stroke-width: 10;
+      stroke-linecap: round;
+      stroke-dasharray: 440;
+      stroke-dashoffset: 440;
+      transition: stroke-dashoffset 1s ease;
+    }
+
+    .circle-progress-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #ec4899;
+    }
+
+    /* Quiz Option Styling */
+    .option-label {
+      border: 2px solid #e5e7eb;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      text-align: left;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .option-label:hover {
+      background-color: #fff7f7;
+      border-color: #ec4899;
+    }
+
+    .option-selected {
+      background-color: #ec4899;
+      color: white;
+      border-color: #be185d;
+    }
+
+    /* Navigation Buttons */
+    .nav-button {
+      padding: 0.8rem 2rem;
+      font-weight: bold;
+      border-radius: 0.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .nav-button:hover {
+      transform: scale(1.05);
+    }
+
+    .submit-button {
+      background-color: #ec4899;
+      color: white;
+    }
+
+    .submit-button:hover {
+      background-color: #be185d;
+    }
+
+    .restart-button {
+      background-color: #34d399;
+      color: white;
+    }
+
+    .restart-button:hover {
+      background-color: #059669;
+    }
+
+    .answer-correct {
+      background-color: #dcfce7;
+      border-color: #22c55e;
+    }
+
+    .answer-wrong {
+      background-color: #fee2e2;
+      border-color: #ef4444;
+    }
+
+    /* Result Section Styling */
+    #result-container {
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center font-sans">
+
+  <!-- Quiz Container -->
+  <div id="quiz-container" class="bg-white text-gray-800 p-8 rounded-2xl shadow-xl max-w-3xl w-full">
+    <div class="relative mb-6">
+      <div class="progress-bar-text">
+        <span id="current-question">1</span> / <span id="total-questions">30</span>
+      </div>
+      <div class="progress-bar-container">
+        <div id="progress-bar" class="progress-bar" style="width: 20%;"></div>
+      </div>
+    </div>
+    <p id="question-text" class="text-lg font-semibold mb-6"></p>
+    <div id="options-container" class="space-y-4"></div>
+    <div class="mt-8 flex justify-between">
+      <button id="prev-btn" class="nav-button bg-gray-200 text-gray-600" disabled>
+        Previous
+      </button>
+      <button id="next-btn" class="nav-button bg-pink-600 text-white">
+        Next
+      </button>
+    </div>
+    <div id="submit-container" class="hidden mt-8 text-center">
+      <button id="submit-btn" class="nav-button submit-button">
+        Submit Quiz
+      </button>
+    </div>
+  </div>
+
+  <!-- Results Section -->
+  <div id="result-container" class="hidden bg-white text-gray-800 p-8 rounded-2xl shadow-xl max-w-4xl w-full">
+    <h2 class="text-3xl font-bold text-center mb-6 text-indigo-600">Quiz Results</h2>
+
+    <!-- Circular Progress -->
+    <div class="circle-progress-container">
+      <svg width="150" height="150">
+        <circle
+          cx="75"
+          cy="75"
+          r="70"
+          class="circle-progress-background"
+          fill="none"
+        ></circle>
+        <circle
+          cx="75"
+          cy="75"
+          r="70"
+          class="circle-progress-foreground"
+          fill="none"
+        ></circle>
+      </svg>
+      <div class="circle-progress-text" id="circle-progress-text">0%</div>
+    </div>
+
+    <p id="score-text" class="text-2xl font-bold text-center mt-6"></p>
+    <p id="time-text" class="text-lg text-center text-gray-500 mt-2 flex items-center justify-center">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6l4 2M12 4c4.418 0 8 3.582 8 8s-3.582 8-8 8-8-3.582-8-8 3.582-8 8-8z" />
+      </svg>
+      <span id="time-taken-text"></span>
+    </p>
+    <ul id="answer-list" class="space-y-4 border-t border-gray-300 pt-4 mt-6"></ul>
+    <div class="text-center mt-8">
+      <button id="restart-btn" class="mt-6 px-6 py-2 restart-button rounded-lg shadow hover:scale-105">
+        Restart Quiz
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+        { question: "What does CSS stand for?", options: ["Cascading Style Sheets", "Computer Style Sheets", "Creative Style Sheets", "Colorful Style Sheets"], answer: 0 },
+        { question: "Which property is used to change the background color in CSS?", options: ["bgcolor", "background-color", "color", "background"], answer: 1 },
+        { question: "Which CSS property controls the text size?", options: ["font-size", "text-size", "size", "font-style"], answer: 0 },
+        { question: "How do you select an element with the class 'example' in CSS?", options: [".example", "#example", "example", "*example"], answer: 0 },
+        { question: "Which property is used to change the font of text in CSS?", options: ["font-family", "font-type", "font-style", "text-font"], answer: 0 },
+        { question: "Which CSS property controls the space between lines of text?", options: ["line-height", "letter-spacing", "word-spacing", "text-spacing"], answer: 0 },
+        { question: "How do you apply a style to all paragraphs in a webpage using CSS?", options: ["p { }", "paragraph { }", ".p { }", "#p { }"], answer: 0 },
+        { question: "What does the 'border' property in CSS do?", options: ["Creates a margin around an element", "Creates a border around an element", "Changes the background color", "None of the above"], answer: 1 },
+        { question: "How can you make text bold in CSS?", options: ["font-weight: bold;", "font-size: bold;", "font-style: bold;", "text-weight: bold;"], answer: 0 },
+        { question: "Which property is used to change the text color in CSS?", options: ["color", "text-color", "font-color", "background-color"], answer: 0 },
+        { question: "How do you add space between elements using CSS?", options: ["padding", "margin", "border", "spacing"], answer: 1 },
+        { question: "Which property is used to change the font style in CSS?", options: ["font-family", "font-style", "text-style", "text-decoration"], answer: 1 },
+        { question: "How can you change the text alignment to center using CSS?", options: ["text-align: center;", "text-align: middle;", "align-text: center;", "center-align: true;"], answer: 0 },
+        { question: "What does the 'padding' property do in CSS?", options: ["Adds space inside an element", "Adds space outside an element", "Changes the background color", "Adds a border around the element"], answer: 0 },
+        { question: "Which property is used to set the width of an element in CSS?", options: ["width", "height", "size", "dimension"], answer: 0 },
+        { question: "Which of the following CSS properties is used to set the distance between the text and its surrounding element?", options: ["padding", "margin", "border", "alignment"], answer: 0 },
+        { question: "What is the correct CSS syntax for making a text italic?", options: ["font-style: italic;", "text-style: italic;", "font-weight: italic;", "text-align: italic;"], answer: 0 },
+        { question: "Which CSS property is used to specify the space between elements?", options: ["margin", "padding", "border", "spacing"], answer: 0 },
+        { question: "How do you select an element with the id 'header' in CSS?", options: ["#header", ".header", "header", "id-header"], answer: 0 },
+        { question: "Which property is used to control the line height in CSS?", options: ["line-height", "text-height", "height", "font-size"], answer: 0 },
+        { question: "How do you set the background color of an element in CSS?", options: ["background-color", "color", "bgcolor", "background"], answer: 0 },
+        { question: "How do you make a link's text color red in CSS?", options: ["a { color: red; }", "link { color: red; }", "a { font-color: red; }", "a { color: red;}"], answer: 0 },
+        { question: "Which CSS property is used to change the size of the border?", options: ["border-width", "border-size", "border-thickness", "border-height"], answer: 0 },
+        { question: "What is the default value of the 'display' property in CSS?", options: ["block", "inline", "none", "flex"], answer: 0 },
+        { question: "Which property is used to change the visibility of an element in CSS?", options: ["visibility", "hidden", "display", "opacity"], answer: 0 },
+        { question: "How do you change the font size of an element to 20px in CSS?", options: ["font-size: 20px;", "size: 20px;", "text-size: 20px;", "font: 20px;"], answer: 0 },
+        { question: "How do you make an element's content invisible in CSS without affecting the layout?", options: ["visibility: hidden;", "display: none;", "opacity: 0;", "content: invisible;"], answer: 0 },
+        { question: "Which CSS property is used to make an element float to the left?", options: ["float: left;", "align: left;", "position: left;", "display: left;"], answer: 0 },
+        { question: "How do you define the font of an element using CSS?", options: ["font-family", "text-font", "font-style", "font-size"], answer: 0 },
+        { question: "Which of the following properties is used to define the alignment of an element?", options: ["text-align", "align", "position", "margin"], answer: 0 },
+        { question: "How do you add a shadow to text in CSS?", options: ["text-shadow: 2px 2px 5px gray;", "shadow: 2px 2px 5px gray;", "box-shadow: 2px 2px 5px gray;", "shadow-text: 2px 2px 5px gray;"], answer: 0 }
+    ];
+
+    let currentQuestionIndex = 0;
+    const userAnswers = Array(questions.length).fill(null);
+    let startTime;
+    let endTime;
+
+    const questionText = document.getElementById("question-text");
+    const optionsContainer = document.getElementById("options-container");
+    const prevBtn = document.getElementById("prev-btn");
+    const nextBtn = document.getElementById("next-btn");
+    const submitBtn = document.getElementById("submit-btn");
+    const submitContainer = document.getElementById("submit-container");
+    const resultContainer = document.getElementById("result-container");
+    const quizContainer = document.getElementById("quiz-container");
+    const circleProgressForeground = document.querySelector(".circle-progress-foreground");
+    const circleProgressText = document.getElementById("circle-progress-text");
+    const scoreText = document.getElementById("score-text");
+    const timeText = document.getElementById("time-text");
+    const timeTakenText = document.getElementById("time-taken-text");
+    const answerList = document.getElementById("answer-list");
+    const restartBtn = document.getElementById("restart-btn");
+
+    function loadQuestion() {
+      const question = questions[currentQuestionIndex];
+      questionText.textContent = question.question;
+      optionsContainer.innerHTML = "";
+      question.options.forEach((option, index) => {
+        const optionElement = document.createElement("label");
+        optionElement.classList.add("option-label", "block");
+
+        const input = document.createElement("input");
+        input.type = "radio";
+        input.name = "answer";
+        input.value = index;
+        input.classList.add("hidden");
+        input.checked = userAnswers[currentQuestionIndex] === index;
+
+        optionElement.appendChild(input);
+        optionElement.appendChild(document.createTextNode(option));
+        optionsContainer.appendChild(optionElement);
+
+        optionElement.addEventListener("click", () => {
+          userAnswers[currentQuestionIndex] = index;
+          document.querySelectorAll(".option-label").forEach((el) => el.classList.remove("option-selected"));
+          optionElement.classList.add("option-selected");
+        });
+      });
+
+      prevBtn.disabled = currentQuestionIndex === 0;
+      nextBtn.style.display = currentQuestionIndex === questions.length - 1 ? "none" : "inline-block";
+      submitContainer.classList.toggle("hidden", currentQuestionIndex !== questions.length - 1);
+
+      document.getElementById("current-question").textContent = currentQuestionIndex + 1;
+      document.getElementById("progress-bar").style.width = `${((currentQuestionIndex + 1) / questions.length) * 100}%`;
+    }
+
+    function updateCircularProgress(score, total) {
+      const percentage = Math.round((score / total) * 100);
+      const circumference = 440; // Circumference of the circle
+      const offset = circumference - (percentage / 100) * circumference;
+      circleProgressForeground.style.strokeDashoffset = offset;
+      circleProgressText.textContent = `${percentage}%`;
+    }
+
+    function showResults() {
+      quizContainer.classList.add("hidden");
+      resultContainer.classList.remove("hidden");
+
+      const score = userAnswers.filter((answer, index) => answer === questions[index].answer).length;
+
+      scoreText.textContent = `You scored ${score} out of ${questions.length}.`;
+      updateCircularProgress(score, questions.length);
+
+      endTime = new Date();
+      const totalTime = Math.round((endTime - startTime) / 1000); // Time in seconds
+      timeTakenText.textContent = `${totalTime} seconds`;
+
+      answerList.innerHTML = "";
+      questions.forEach((question, index) => {
+        const listItem = document.createElement("li");
+        listItem.classList.add("p-4", "rounded-lg", "border", "space-y-1");
+
+        const userAnswer = userAnswers[index];
+        const correctAnswer = question.answer;
+
+        if (userAnswer === correctAnswer) {
+          listItem.classList.add("answer-correct");
+        } else {
+          listItem.classList.add("answer-wrong");
+        }
+
+        listItem.innerHTML = `
+          <strong>Q${index + 1}:</strong> ${question.question}<br>
+          ✅ Correct Answer: ${question.options[correctAnswer]}<br>
+          ${
+            userAnswer !== null
+              ? `❌ Your Answer: ${question.options[userAnswer]}`
+              : "❌ Your Answer: No Answer"
+          }
+        `;
+
+        answerList.appendChild(listItem);
+      });
+    }
+
+    restartBtn.addEventListener("click", () => {
+      currentQuestionIndex = 0;
+      userAnswers.fill(null);
+      resultContainer.classList.add("hidden");
+      quizContainer.classList.remove("hidden");
+      loadQuestion();
+      startTime = new Date();
+    });
+
+    nextBtn.addEventListener("click", () => {
+      currentQuestionIndex++;
+      loadQuestion();
+    });
+
+    prevBtn.addEventListener("click", () => {
+      currentQuestionIndex--;
+      loadQuestion();
+    });
+
+    submitBtn.addEventListener("click", showResults);
+
+    startTime = new Date();
+    loadQuestion();
+  </script>
+</body>
+</html>

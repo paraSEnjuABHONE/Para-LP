@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enhanced Quiz</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Progress Bar Styling */
+    .progress-bar-container {
+      background-color: #f3f4f6;
+      border-radius: 1rem;
+      height: 0.25rem;
+      width: 100%;
+      position: relative;
+    }
+
+    .progress-bar {
+      background-color: #ec4899;
+      height: 100%;
+      border-radius: 1rem;
+      transition: width 0.3s ease-in-out;
+    }
+
+    .progress-bar-text {
+      font-size: 0.875rem;
+      font-weight: bold;
+      color: #ec4899;
+      position: absolute;
+      top: -1.5rem;
+      left: 0;
+    }
+
+    /* Circular Progress Bar Styling */
+    .circle-progress-container {
+      position: relative;
+      width: 150px;
+      height: 150px;
+      margin: 0 auto;
+    }
+
+    .circle-progress-container svg {
+      transform: rotate(-90deg);
+    }
+
+    .circle-progress-background {
+      stroke: #f3f4f6;
+      stroke-width: 10;
+    }
+
+    .circle-progress-foreground {
+      stroke: #ec4899;
+      stroke-width: 10;
+      stroke-linecap: round;
+      stroke-dasharray: 440;
+      stroke-dashoffset: 440;
+      transition: stroke-dashoffset 1s ease;
+    }
+
+    .circle-progress-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #ec4899;
+    }
+
+    /* Quiz Option Styling */
+    .option-label {
+      border: 2px solid #e5e7eb;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      text-align: left;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .option-label:hover {
+      background-color: #fff7f7;
+      border-color: #ec4899;
+    }
+
+    .option-selected {
+      background-color: #ec4899;
+      color: white;
+      border-color: #be185d;
+    }
+
+    /* Navigation Buttons */
+    .nav-button {
+      padding: 0.8rem 2rem;
+      font-weight: bold;
+      border-radius: 0.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .nav-button:hover {
+      transform: scale(1.05);
+    }
+
+    .submit-button {
+      background-color: #ec4899;
+      color: white;
+    }
+
+    .submit-button:hover {
+      background-color: #be185d;
+    }
+
+    .restart-button {
+      background-color: #34d399;
+      color: white;
+    }
+
+    .restart-button:hover {
+      background-color: #059669;
+    }
+
+    .answer-correct {
+      background-color: #dcfce7;
+      border-color: #22c55e;
+    }
+
+    .answer-wrong {
+      background-color: #fee2e2;
+      border-color: #ef4444;
+    }
+
+    /* Result Section Styling */
+    #result-container {
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center font-sans">
+
+  <!-- Quiz Container -->
+  <div id="quiz-container" class="bg-white text-gray-800 p-8 rounded-2xl shadow-xl max-w-3xl w-full">
+    <div class="relative mb-6">
+      <div class="progress-bar-text">
+        <span id="current-question">1</span> / <span id="total-questions">30</span>
+      </div>
+      <div class="progress-bar-container">
+        <div id="progress-bar" class="progress-bar" style="width: 20%;"></div>
+      </div>
+    </div>
+    <p id="question-text" class="text-lg font-semibold mb-6"></p>
+    <div id="options-container" class="space-y-4"></div>
+    <div class="mt-8 flex justify-between">
+      <button id="prev-btn" class="nav-button bg-gray-200 text-gray-600" disabled>
+        Previous
+      </button>
+      <button id="next-btn" class="nav-button bg-pink-600 text-white">
+        Next
+      </button>
+    </div>
+    <div id="submit-container" class="hidden mt-8 text-center">
+      <button id="submit-btn" class="nav-button submit-button">
+        Submit Quiz
+      </button>
+    </div>
+  </div>
+
+  <!-- Results Section -->
+  <div id="result-container" class="hidden bg-white text-gray-800 p-8 rounded-2xl shadow-xl max-w-4xl w-full">
+    <h2 class="text-3xl font-bold text-center mb-6 text-indigo-600">Quiz Results</h2>
+
+    <!-- Circular Progress -->
+    <div class="circle-progress-container">
+      <svg width="150" height="150">
+        <circle
+          cx="75"
+          cy="75"
+          r="70"
+          class="circle-progress-background"
+          fill="none"
+        ></circle>
+        <circle
+          cx="75"
+          cy="75"
+          r="70"
+          class="circle-progress-foreground"
+          fill="none"
+        ></circle>
+      </svg>
+      <div class="circle-progress-text" id="circle-progress-text">0%</div>
+    </div>
+
+    <p id="score-text" class="text-2xl font-bold text-center mt-6"></p>
+    <p id="time-text" class="text-lg text-center text-gray-500 mt-2 flex items-center justify-center">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6l4 2M12 4c4.418 0 8 3.582 8 8s-3.582 8-8 8-8-3.582-8-8 3.582-8 8-8z" />
+      </svg>
+      <span id="time-taken-text"></span>
+    </p>
+    <ul id="answer-list" class="space-y-4 border-t border-gray-300 pt-4 mt-6"></ul>
+    <div class="text-center mt-8">
+      <button id="restart-btn" class="mt-6 px-6 py-2 restart-button rounded-lg shadow hover:scale-105">
+        Restart Quiz
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+    { question: "What is the extension of a compiled Java file?", options: [".java", ".exe", ".class", ".jar"], answer: 2 },
+    { question: "Who created the Java programming language?", options: ["Microsoft", "Oracle", "Sun Microsystems", "IBM"], answer: 2 },
+    { question: "What does JVM stand for?", options: ["Java Virtual Machine", "Java Visual Machine", "Java Version Manager", "Java Variable Manager"], answer: 0 },
+    { question: "Which method is used to print text to the console in Java?", options: ["echo()", "System.print()", "System.out.println()", "console.log()"], answer: 2 },
+    { question: "Which of these is not a Java keyword?", options: ["static", "abstract", "class", "finalize"], answer: 3 },
+    { question: "What is the default value of an `int` variable in Java?", options: ["0", "null", "undefined", "1"], answer: 0 },
+    { question: "What is the parent class of all Java classes?", options: ["System", "Object", "Class", "Base"], answer: 1 },
+    { question: "What is the purpose of the `this` keyword in Java?", options: ["Access a static variable", "Refer to the current object", "Call a parent class method", "Create a new object"], answer: 1 },
+    { question: "Which keyword is used to define a constant in Java?", options: ["const", "static", "final", "constant"], answer: 2 },
+    { question: "What is the size of a `double` in Java?", options: ["4 bytes", "8 bytes", "16 bytes", "32 bytes"], answer: 1 },
+    { question: "Which operator is used to compare two values in Java?", options: ["==", "=", "!=", "=>"], answer: 0 },
+    { question: "Which access modifier allows access only within the same class?", options: ["public", "protected", "private", "default"], answer: 2 },
+    { question: "Which of these is a valid variable name?", options: ["1name", "_name", "name$", "@name"], answer: 1 },
+    { question: "What is the output of this code? System.out.println(\"Java\" + 2 + 3);", options: ["Java5", "Java23", "5Java", "Error"], answer: 1 },
+    { question: "Which loop guarantees at least one execution?", options: ["for", "while", "do-while", "foreach"], answer: 2 },
+    { question: "What is the purpose of the `super` keyword?", options: ["Access the current class", "Access the parent class", "Create a new class", "Call a static method"], answer: 1 },
+    { question: "Which of the following is NOT a Java feature?", options: ["Object-Oriented", "Platform Independent", "Low-level Programming", "Secure"], answer: 2 },
+    { question: "What is the purpose of the `finally` block in exception handling?", options: ["Executes code only if an exception occurs", "Executes code always", "Skips exception handling", "None of the above"], answer: 1 },
+    { question: "What is the output of this code? int a = 10; System.out.println(a++);", options: ["10", "11", "Error", "None of the above"], answer: 0 },
+    { question: "What does the `break` statement do in Java?", options: ["Exits a loop", "Continues to the next iteration", "Stops program execution", "None of the above"], answer: 0 },
+    { question: "Which access modifier is the most restrictive?", options: ["public", "protected", "private", "default"], answer: 2 },
+    { question: "Which keyword is used to inherit a class in Java?", options: ["implements", "extends", "inherits", "super"], answer: 1 },
+    { question: "What is the default value of a `String` variable in Java?", options: ["null", "\"\"", "undefined", "empty"], answer: 0 },
+    { question: "Which of these is NOT a valid data type in Java?", options: ["int", "float", "decimal", "boolean"], answer: 2 },
+    { question: "What is the purpose of the `implements` keyword?", options: ["Inherit a class", "Implement an interface", "Override a method", "Define a constant"], answer: 1 },
+    { question: "What does the `continue` statement do in Java?", options: ["Exits a loop", "Skips the current iteration", "Stops program execution", "Returns to the start of the method"], answer: 1 },
+    { question: "Which keyword is used to create a new object in Java?", options: ["create", "new", "instance", "object"], answer: 1 },
+    { question: "What is the purpose of the `void` keyword in a method?", options: ["Indicates the method returns nothing", "Indicates the method returns a value", "Declares a static method", "None of the above"], answer: 0 },
+    { question: "Which method is used to compare two strings in Java?", options: ["compareTo()", "equals()", "==", "Both A and B"], answer: 3 },
+    { question: "Which of these is a valid syntax to declare an array?", options: ["int arr[];", "int[] arr;", "int arr[] = new int[5];", "All of the above"], answer: 3 },
+    ];
+
+    let currentQuestionIndex = 0;
+    const userAnswers = Array(questions.length).fill(null);
+    let startTime;
+    let endTime;
+
+    const questionText = document.getElementById("question-text");
+    const optionsContainer = document.getElementById("options-container");
+    const prevBtn = document.getElementById("prev-btn");
+    const nextBtn = document.getElementById("next-btn");
+    const submitBtn = document.getElementById("submit-btn");
+    const submitContainer = document.getElementById("submit-container");
+    const resultContainer = document.getElementById("result-container");
+    const quizContainer = document.getElementById("quiz-container");
+    const circleProgressForeground = document.querySelector(".circle-progress-foreground");
+    const circleProgressText = document.getElementById("circle-progress-text");
+    const scoreText = document.getElementById("score-text");
+    const timeText = document.getElementById("time-text");
+    const timeTakenText = document.getElementById("time-taken-text");
+    const answerList = document.getElementById("answer-list");
+    const restartBtn = document.getElementById("restart-btn");
+
+    function loadQuestion() {
+      const question = questions[currentQuestionIndex];
+      questionText.textContent = question.question;
+      optionsContainer.innerHTML = "";
+      question.options.forEach((option, index) => {
+        const optionElement = document.createElement("label");
+        optionElement.classList.add("option-label", "block");
+
+        const input = document.createElement("input");
+        input.type = "radio";
+        input.name = "answer";
+        input.value = index;
+        input.classList.add("hidden");
+        input.checked = userAnswers[currentQuestionIndex] === index;
+
+        optionElement.appendChild(input);
+        optionElement.appendChild(document.createTextNode(option));
+        optionsContainer.appendChild(optionElement);
+
+        optionElement.addEventListener("click", () => {
+          userAnswers[currentQuestionIndex] = index;
+          document.querySelectorAll(".option-label").forEach((el) => el.classList.remove("option-selected"));
+          optionElement.classList.add("option-selected");
+        });
+      });
+
+      prevBtn.disabled = currentQuestionIndex === 0;
+      nextBtn.style.display = currentQuestionIndex === questions.length - 1 ? "none" : "inline-block";
+      submitContainer.classList.toggle("hidden", currentQuestionIndex !== questions.length - 1);
+
+      document.getElementById("current-question").textContent = currentQuestionIndex + 1;
+      document.getElementById("progress-bar").style.width = `${((currentQuestionIndex + 1) / questions.length) * 100}%`;
+    }
+
+    function updateCircularProgress(score, total) {
+      const percentage = Math.round((score / total) * 100);
+      const circumference = 440; // Circumference of the circle
+      const offset = circumference - (percentage / 100) * circumference;
+      circleProgressForeground.style.strokeDashoffset = offset;
+      circleProgressText.textContent = `${percentage}%`;
+    }
+
+    function showResults() {
+      quizContainer.classList.add("hidden");
+      resultContainer.classList.remove("hidden");
+
+      const score = userAnswers.filter((answer, index) => answer === questions[index].answer).length;
+
+      scoreText.textContent = `You scored ${score} out of ${questions.length}.`;
+      updateCircularProgress(score, questions.length);
+
+      endTime = new Date();
+      const totalTime = Math.round((endTime - startTime) / 1000); // Time in seconds
+      timeTakenText.textContent = `${totalTime} seconds`;
+
+      answerList.innerHTML = "";
+      questions.forEach((question, index) => {
+        const listItem = document.createElement("li");
+        listItem.classList.add("p-4", "rounded-lg", "border", "space-y-1");
+
+        const userAnswer = userAnswers[index];
+        const correctAnswer = question.answer;
+
+        if (userAnswer === correctAnswer) {
+          listItem.classList.add("answer-correct");
+        } else {
+          listItem.classList.add("answer-wrong");
+        }
+
+        listItem.innerHTML = `
+          <strong>Q${index + 1}:</strong> ${question.question}<br>
+          ✅ Correct Answer: ${question.options[correctAnswer]}<br>
+          ${
+            userAnswer !== null
+              ? `❌ Your Answer: ${question.options[userAnswer]}`
+              : "❌ Your Answer: No Answer"
+          }
+        `;
+
+        answerList.appendChild(listItem);
+      });
+    }
+
+    restartBtn.addEventListener("click", () => {
+      currentQuestionIndex = 0;
+      userAnswers.fill(null);
+      resultContainer.classList.add("hidden");
+      quizContainer.classList.remove("hidden");
+      loadQuestion();
+      startTime = new Date();
+    });
+
+    nextBtn.addEventListener("click", () => {
+      currentQuestionIndex++;
+      loadQuestion();
+    });
+
+    prevBtn.addEventListener("click", () => {
+      currentQuestionIndex--;
+      loadQuestion();
+    });
+
+    submitBtn.addEventListener("click", showResults);
+
+    startTime = new Date();
+    loadQuestion();
+  </script>
+</body>
+</html>
